@@ -1,0 +1,635 @@
+ <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SecureAuth - User Authentication System</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a2980, #26d0ce);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            color: #333;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 500px;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.25);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #3a7bd5, #00d2ff);
+            color: white;
+            padding: 25px 30px;
+            text-align: center;
+        }
+        
+        h1 {
+            font-weight: 600;
+            font-size: 28px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+        
+        .app-content {
+            padding: 25px;
+        }
+        
+        .auth-form {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .form-label {
+            font-weight: 500;
+            color: #2c3e50;
+        }
+        
+        .form-input {
+            padding: 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            outline: none;
+            transition: all 0.3s;
+        }
+        
+        .form-input:focus {
+            border-color: #3a7bd5;
+            box-shadow: 0 0 0 3px rgba(58, 123, 213, 0.2);
+        }
+        
+        .auth-btn {
+            background: linear-gradient(135deg, #3a7bd5, #00d2ff);
+            color: white;
+            border: none;
+            padding: 16px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            transition: all 0.3s;
+            margin-top: 10px;
+        }
+        
+        .auth-btn:hover {
+            transform: scale(1.02);
+            box-shadow: 0 5px 15px rgba(58, 123, 213, 0.4);
+        }
+        
+        .auth-toggle {
+            text-align: center;
+            margin-top: 20px;
+            color: #7f8c8d;
+        }
+        
+        .auth-toggle-btn {
+            background: none;
+            border: none;
+            color: #3a7bd5;
+            cursor: pointer;
+            font-weight: 500;
+            text-decoration: underline;
+        }
+        
+        .dashboard {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .welcome-message {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .user-info {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .info-item:last-child {
+            border-bottom: none;
+        }
+        
+        .info-label {
+            font-weight: 500;
+            color: #7f8c8d;
+        }
+        
+        .info-value {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        .protected-content {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .logout-btn {
+            background: linear-gradient(135deg, #ff4757, #ff6b81);
+            color: white;
+            border: none;
+            padding: 16px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            transition: all 0.3s;
+            margin-top: 10px;
+        }
+        
+        .logout-btn:hover {
+            transform: scale(1.02);
+            box-shadow: 0 5px 15px rgba(255, 71, 87, 0.4);
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .notification.show {
+            transform: translateX(0);
+        }
+        
+        .notification.success {
+            border-left: 4px solid #4caf50;
+        }
+        
+        .notification.error {
+            border-left: 4px solid #ff4757;
+        }
+        
+        .footer {
+            text-align: center;
+            padding: 15px;
+            color: #7f8c8d;
+            font-size: 12px;
+            border-top: 1px solid #eee;
+        }
+        
+        .password-strength {
+            height: 5px;
+            border-radius: 5px;
+            margin-top: 5px;
+            background: #eee;
+            overflow: hidden;
+        }
+        
+        .password-strength-bar {
+            height: 100%;
+            transition: all 0.3s;
+            width: 0%;
+        }
+        
+        .weak {
+            background: #ff4757;
+            width: 33%;
+        }
+        
+        .medium {
+            background: #ffa502;
+            width: 66%;
+        }
+        
+        .strong {
+            background: #2ed573;
+            width: 100%;
+        }
+        
+        @media (max-width: 600px) {
+            .container {
+                border-radius: 12px;
+            }
+            
+            .header {
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 24px;
+            }
+            
+            .app-content {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        // React Components
+        const { useState, useEffect } = React;
+
+        // Password Strength Indicator Component
+        function PasswordStrength({ password }) {
+            const getStrength = (pass) => {
+                if (!pass) return { strength: 0, label: '' };
+                
+                let strength = 0;
+                if (pass.length > 5) strength++;
+                if (pass.length > 8) strength++;
+                if (/[A-Z]/.test(pass)) strength++;
+                if (/[0-9]/.test(pass)) strength++;
+                if (/[^A-Za-z0-9]/.test(pass)) strength++;
+                
+                let label = '';
+                let width = 0;
+                
+                if (strength < 2) {
+                    label = 'Weak';
+                    width = 33;
+                } else if (strength < 4) {
+                    label = 'Medium';
+                    width = 66;
+                } else {
+                    label = 'Strong';
+                    width = 100;
+                }
+                
+                return { strength, label, width };
+            };
+            
+            const strengthInfo = getStrength(password);
+            
+            return (
+                <div>
+                    <div className="password-strength">
+                        <div className={`password-strength-bar ${strengthInfo.label.toLowerCase()}`} 
+                             style={{width: `${strengthInfo.width}%`}}></div>
+                    </div>
+                    {password && <div style={{fontSize: '14px', marginTop: '5px', color: '#7f8c8d'}}>
+                        Strength: {strengthInfo.label}
+                    </div>}
+                </div>
+            );
+        }
+
+        // Auth Form Component
+        function AuthForm({ isLogin, onSubmit, loading }) {
+            const [formData, setFormData] = useState({
+                name: '',
+                email: '',
+                password: ''
+            });
+            
+            const handleChange = (e) => {
+                setFormData({
+                    ...formData,
+                    [e.target.name]: e.target.value
+                });
+            };
+            
+            const handleSubmit = (e) => {
+                e.preventDefault();
+                onSubmit(formData);
+            };
+            
+            return (
+                <form className="auth-form" onSubmit={handleSubmit}>
+                    {!isLogin && (
+                        <div className="form-group">
+                            <label className="form-label">Full Name</label>
+                            <input
+                                type="text"
+                                name="name"
+                                className="form-input"
+                                placeholder="Enter your name"
+                                value={formData.name}
+                                onChange={handleChange}
+                                required
+                            />
+                        </div>
+                    )}
+                    
+                    <div className="form-group">
+                        <label className="form-label">Email Address</label>
+                        <input
+                            type="email"
+                            name="email"
+                            className="form-input"
+                            placeholder="Enter your email"
+                            value={formData.email}
+                            onChange={handleChange}
+                            required
+                        />
+                    </div>
+                    
+                    <div className="form-group">
+                        <label className="form-label">Password</label>
+                        <input
+                            type="password"
+                            name="password"
+                            className="form-input"
+                            placeholder="Enter your password"
+                            value={formData.password}
+                            onChange={handleChange}
+                            required
+                        />
+                        <PasswordStrength password={formData.password} />
+                    </div>
+                    
+                    <button type="submit" className="auth-btn" disabled={loading}>
+                        {loading ? 'Processing...' : (isLogin ? 'Login' : 'Register')}
+                    </button>
+                </form>
+            );
+        }
+
+        // Dashboard Component
+        function Dashboard({ user, onLogout }) {
+            return (
+                <div className="dashboard">
+                    <div className="welcome-message">
+                        <h2>Welcome, {user.name}!</h2>
+                        <p>You have successfully logged in to your account.</p>
+                    </div>
+                    
+                    <div className="user-info">
+                        <h3>Your Information</h3>
+                        <div className="info-item">
+                            <span className="info-label">User ID:</span>
+                            <span className="info-value">{user.id}</span>
+                        </div>
+                        <div className="info-item">
+                            <span className="info-label">Name:</span>
+                            <span className="info-value">{user.name}</span>
+                        </div>
+                        <div className="info-item">
+                            <span className="info-label">Email:</span>
+                            <span className="info-value">{user.email}</span>
+                        </div>
+                        <div className="info-item">
+                            <span className="info-label">Status:</span>
+                            <span className="info-value">Verified User</span>
+                        </div>
+                    </div>
+                    
+                    <div className="protected-content">
+                        <h3>Protected Content</h3>
+                        <p>This content is only available to authenticated users. Your JWT token is working correctly and your session is active.</p>
+                        <p>You have access to all premium features of our application.</p>
+                    </div>
+                    
+                    <button className="logout-btn" onClick={onLogout}>
+                        <i className="fas fa-sign-out-alt"></i> Logout
+                    </button>
+                </div>
+            );
+        }
+
+        // Main Authentication App Component
+        function AuthApp() {
+            const [isLogin, setIsLogin] = useState(true);
+            const [user, setUser] = useState(null);
+            const [loading, setLoading] = useState(false);
+            const [notification, setNotification] = useState({ show: false, message: '', type: '' });
+            
+            // Simulated API calls (in a real app, these would be actual API calls)
+            const API = {
+                // Register a new user
+                register: async (userData) => {
+                    // Simulate API delay
+                    await new Promise(resolve => setTimeout(resolve, 1500));
+                    
+                    // Check if user already exists
+                    const users = JSON.parse(localStorage.getItem('authUsers') || '[]');
+                    const existingUser = users.find(u => u.email === userData.email);
+                    
+                    if (existingUser) {
+                        throw new Error('User with this email already exists');
+                    }
+                    
+                    // Create new user (in a real app, we would hash the password)
+                    const newUser = {
+                        id: Date.now(),
+                        name: userData.name,
+                        email: userData.email,
+                        password: userData.password, // In real app, this would be hashed
+                        createdAt: new Date().toISOString()
+                    };
+                    
+                    users.push(newUser);
+                    localStorage.setItem('authUsers', JSON.stringify(users));
+                    
+                    // Generate a simulated JWT token
+                    const token = btoa(JSON.stringify({
+                        userId: newUser.id,
+                        email: newUser.email,
+                        exp: Date.now() + 24 * 60 * 60 * 1000 // 24 hours
+                    }));
+                    
+                    return { user: { id: newUser.id, name: newUser.name, email: newUser.email }, token };
+                },
+                
+                // Login user
+                login: async (credentials) => {
+                    // Simulate API delay
+                    await new Promise(resolve => setTimeout(resolve, 1500));
+                    
+                    // Find user
+                    const users = JSON.parse(localStorage.getItem('authUsers') || '[]');
+                    const user = users.find(u => 
+                        u.email === credentials.email && u.password === credentials.password
+                    );
+                    
+                    if (!user) {
+                        throw new Error('Invalid email or password');
+                    }
+                    
+                    // Generate a simulated JWT token
+                    const token = btoa(JSON.stringify({
+                        userId: user.id,
+                        email: user.email,
+                        exp: Date.now() + 24 * 60 * 60 * 1000 // 24 hours
+                    }));
+                    
+                    return { user: { id: user.id, name: user.name, email: user.email }, token };
+                },
+                
+                // Verify token
+                verifyToken: async (token) => {
+                    // Simulate API delay
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                    
+                    try {
+                        const payload = JSON.parse(atob(token));
+                        
+                        // Check if token is expired
+                        if (payload.exp < Date.now()) {
+                            throw new Error('Token expired');
+                        }
+                        
+                        // Find user
+                        const users = JSON.parse(localStorage.getItem('authUsers') || '[]');
+                        const user = users.find(u => u.id === payload.userId);
+                        
+                        if (!user) {
+                            throw new Error('User not found');
+                        }
+                        
+                        return { user: { id: user.id, name: user.name, email: user.email } };
+                    } catch (error) {
+                        throw new Error('Invalid token');
+                    }
+                }
+            };
+            
+            // Check if user is already logged in on component mount
+            useEffect(() => {
+                const token = localStorage.getItem('authToken');
+                if (token) {
+                    verifyAuthToken(token);
+                }
+            }, []);
+            
+            const verifyAuthToken = async (token) => {
+                try {
+                    const response = await API.verifyToken(token);
+                    setUser(response.user);
+                } catch (error) {
+                    localStorage.removeItem('authToken');
+                    showNotification('Session expired. Please login again.', 'error');
+                }
+            };
+            
+            const handleAuth = async (formData) => {
+                setLoading(true);
+                try {
+                    const response = isLogin 
+                        ? await API.login(formData)
+                        : await API.register(formData);
+                    
+                    // Store token in localStorage (simulating httpOnly cookie)
+                    localStorage.setItem('authToken', response.token);
+                    setUser(response.user);
+                    
+                    showNotification(
+                        isLogin ? 'Login successful!' : 'Registration successful!',
+                        'success'
+                    );
+                } catch (error) {
+                    showNotification(error.message, 'error');
+                } finally {
+                    setLoading(false);
+                }
+            };
+            
+            const handleLogout = () => {
+                localStorage.removeItem('authToken');
+                setUser(null);
+                showNotification('You have been logged out.', 'success');
+            };
+            
+            const toggleAuthMode = () => {
+                setIsLogin(!isLogin);
+            };
+            
+            const showNotification = (message, type) => {
+                setNotification({ show: true, message, type });
+                setTimeout(() => {
+                    setNotification({ show: false, message: '', type: '' });
+                }, 3000);
+            };
+            
+            return (
+                <div className="container">
+                    <div className="header">
+                        <h1><i className="fas fa-lock"></i> SecureAuth</h1>
+                        <p>{user ? 'Secure User Dashboard' : 'User Authentication System'}</p>
+                    </div>
+                    
+                    <div className="app-content">
+                        {notification.show && (
+                            <div className={`notification ${notification.type} show`}>
+                                <i className={`fas ${notification.type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}`}></i>
+                                {notification.message}
+                            </div>
+                        )}
+                        
+                        {user ? (
+                            <Dashboard user={user} onLogout={handleLogout} />
+                        ) : (
+                            <>
+                                <AuthForm 
+                                    isLogin={isLogin} 
+                                    onSubmit={handleAuth} 
+                                    loading={loading} 
+                                />
+                                <div className="auth-toggle">
+                                    {isLogin ? "Don't have an account? " : "Already have an account? "}
+                                    <button type="button" className="auth-toggle-btn" onClick={toggleAuthMode}>
+                                        {isLogin ? 'Register' : 'Login'}
+                                    </button>
+                                </div>
+                            </>
+                        )}
+                    </div>
+                    
+                    <div className="footer">
+                        <p>JWT Authentication System with Simulated Backend API</p>
+                    </div>
+                </div>
+            );
+        }
+
+        // Render the App
+        ReactDOM.createRoot(document.getElementById('root')).render(<AuthApp />);
+    </script>
+</body>
+</html>
